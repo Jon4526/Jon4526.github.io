@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert Data Science & AI Consulting</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js for Hero 3D Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        light: '#ffffff',
+                        surface: '#f8fafc',
+                        dark: '#0f172a',
+                        primary: '#0066FF',   // Electric Blue
+                        secondary: '#FF007F', // Vibrant Pink
+                        accent: '#00E5FF'     // Cyan
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'alive-gradient': 'linear-gradient(135deg, #0066FF 0%, #FF007F 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #334155;
+            overflow-x: hidden;
+        }
+        
+        /* Light Glassmorphism utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .glass-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(0, 102, 255, 0.2);
+            box-shadow: 0 20px 40px -10px rgba(0, 102, 255, 0.15);
+            transform: translateY(-8px);
+        }
+
+        /* 3D Canvas Containers */
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: auto;
+        }
+
+        #usecase-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #0066FF, #FF007F);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Scrollspy Nav Links */
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            color: #0066FF;
+            font-weight: 700;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background-color: #0066FF;
+            border-radius: 2px;
+        }
+
+        /* Intersection Observer Reveal Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Delay utility for staggered animations */
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        /* Testimonials Carousel Infinite Scroll */
+        .carousel-container {
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+        .carousel-track {
+            display: flex;
+            gap: 2rem;
+            width: max-content;
+            animation: scroll 40s linear infinite;
+        }
+        .carousel-track:hover {
+            animation-play-state: paused;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-50% - 1rem)); } /* Scrolls exactly half the duplicated content */
+        }
+
+        /* Use Cases Sync Styling */
+        .usecase-card {
+            transition: all 0.5s ease;
+            opacity: 0.5;
+            transform: scale(0.95);
+            border-color: transparent;
+        }
+        .usecase-card.active {
+            opacity: 1;
+            transform: scale(1);
+            background: #ffffff;
+            border-color: rgba(0, 102, 255, 0.2);
+            box-shadow: 0 20px 40px -10px rgba(0, 102, 255, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0066FF; }
+        
+        .blob-bg {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            border-radius: 50%;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -50px) scale(1.1); }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-primary selection:text-white relative">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer z-10" onclick="window.scrollTo(0,0)">
+                    <i data-lucide="hexagon" class="text-primary w-8 h-8 fill-primary/10"></i>
+                    <span class="font-display font-bold text-xl tracking-wider text-dark">DATA<span class="text-primary">NOVA</span></span>
+                </div>
+                
+                <!-- Desktop Menu (Scrollspy linked) -->
+                <div class="hidden md:flex space-x-8 items-center bg-white/70 backdrop-blur-md px-8 py-3 rounded-full border border-white/80 shadow-sm">
+                    <a href="#about" class="nav-link text-sm font-semibold text-slate-500 hover:text-primary" data-target="about">About</a>
+                    <a href="#use-cases" class="nav-link text-sm font-semibold text-slate-500 hover:text-primary" data-target="use-cases">Use Cases</a>
+                    <a href="#domains" class="nav-link text-sm font-semibold text-slate-500 hover:text-primary" data-target="domains">Domains</a>
+                    <a href="#expertise" class="nav-link text-sm font-semibold text-slate-500 hover:text-primary" data-target="expertise">Expertise</a>
+                    <a href="#testimonials" class="nav-link text-sm font-semibold text-slate-500 hover:text-primary" data-target="testimonials">Testimonials</a>
+                </div>
+                
+                <div class="hidden md:flex">
+                    <a href="#contact" class="px-6 py-2.5 text-sm font-bold rounded-full bg-primary text-white hover:bg-dark transition-all duration-300 shadow-[0_4px_15px_rgba(0,102,255,0.3)] hover:shadow-lg">
+                        Let's Talk
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center z-10">
+                    <button id="mobile-menu-btn" class="text-dark hover:text-primary">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden glass border-t border-slate-100 absolute w-full bg-white">
+            <div class="px-4 pt-2 pb-6 space-y-2 flex flex-col text-center">
+                <a href="#about" class="block px-3 py-3 text-base font-semibold text-slate-700 hover:text-primary hover:bg-slate-50 rounded-lg">About</a>
+                <a href="#use-cases" class="block px-3 py-3 text-base font-semibold text-slate-700 hover:text-primary hover:bg-slate-50 rounded-lg">Use Cases</a>
+                <a href="#domains" class="block px-3 py-3 text-base font-semibold text-slate-700 hover:text-primary hover:bg-slate-50 rounded-lg">Domains</a>
+                <a href="#expertise" class="block px-3 py-3 text-base font-semibold text-slate-700 hover:text-primary hover:bg-slate-50 rounded-lg">Expertise</a>
+                <a href="#testimonials" class="block px-3 py-3 text-base font-semibold text-slate-700 hover:text-primary hover:bg-slate-50 rounded-lg">Testimonials</a>
+                <a href="#contact" class="block mt-4 px-3 py-3 text-base font-bold bg-primary text-white rounded-lg">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+        <!-- 3D Canvas Background -->
+        <div id="hero-canvas"></div>
+        
+        <div class="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white z-0 pointer-events-none"></div>
+        
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto pointer-events-auto mt-10 reveal active">
+            <div class="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-slate-200 text-primary text-sm font-bold tracking-wide shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                Advanced Data Science & AI Strategy
+            </div>
+            <h1 class="text-6xl md:text-8xl font-display font-bold leading-[1.1] mb-6 text-dark">
+                Transform Data into <br />
+                <span class="gradient-text">Living Intelligence</span>
+            </h1>
+            <p class="mt-6 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 font-medium">
+                Empowering visionary businesses with state-of-the-art Machine Learning, mathematical optimization, and prescriptive analytics.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#use-cases" class="px-8 py-4 rounded-full bg-dark text-white font-semibold hover:scale-105 hover:bg-primary transition-all duration-300 shadow-xl">
+                    Explore Solutions
+                </a>
+                <a href="#contact" class="px-8 py-4 rounded-full glass text-dark font-semibold hover:bg-white transition-all duration-300">
+                    Book Consultation
+                </a>
+            </div>
+        </div>
+        
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce z-10">
+            <i data-lucide="arrow-down" class="w-6 h-6 text-primary"></i>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 relative z-10 bg-surface">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="w-96 h-96 bg-primary/10 blob-bg top-0 left-0"></div>
+            
+            <!-- Centered & Animated Counters -->
+            <div class="flex flex-col md:flex-row justify-center items-center gap-10 md:gap-20 text-center mb-20 reveal">
+                <div class="flex flex-col items-center">
+                    <h4 class="text-6xl md:text-7xl font-display font-bold text-dark mb-2 flex items-center">
+                        <span class="counter" data-target="10">0</span><span class="text-secondary ml-1">+</span>
+                    </h4>
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Years Experience</p>
+                </div>
+                <div class="hidden md:block w-px h-24 bg-slate-200"></div>
+                <div class="md:hidden h-px w-24 bg-slate-200"></div>
+                <div class="flex flex-col items-center">
+                    <h4 class="text-6xl md:text-7xl font-display font-bold text-dark mb-2 flex items-center">
+                        <span class="counter" data-target="50">0</span><span class="text-primary ml-1">+</span>
+                    </h4>
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Enterprise Models</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+                <div class="reveal delay-100">
+                    <h2 class="text-4xl md:text-5xl font-display font-bold mb-6 text-dark">Bridging the gap between <span class="text-primary">algorithms</span> and enterprise ROI.</h2>
+                    <p class="text-slate-600 mb-6 text-lg leading-relaxed">
+                        I am a multidisciplinary Data Scientist specializing in complex problem-solving. By combining deep technical rigor with broad business acumen, I architect scalable models that drive measurable growth.
+                    </p>
+                    <p class="text-slate-600 text-lg leading-relaxed">
+                        From optimizing global supply chains using MILP to building predictive financial models and enterprise-scale Deep Learning pipelines, I bring a holistic perspective to every challenge.
+                    </p>
+                </div>
+                
+                <div class="relative reveal delay-200">
+                    <div class="glass p-10 rounded-3xl relative overflow-hidden border border-white">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <i data-lucide="brain-circuit" class="w-12 h-12 text-primary mb-8"></i>
+                        <h3 class="text-2xl font-display font-bold mb-6 text-dark">The Multidisciplinary Advantage</h3>
+                        <ul class="space-y-6">
+                            <li class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i data-lucide="check" class="w-4 h-4 text-primary font-bold"></i>
+                                </div>
+                                <span class="text-slate-700 font-medium">Seamless integration of ML into existing operational workflows.</span>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i data-lucide="check" class="w-4 h-4 text-secondary font-bold"></i>
+                                </div>
+                                <span class="text-slate-700 font-medium">Translating abstract algorithmic outputs into boardroom strategies.</span>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i data-lucide="check" class="w-4 h-4 text-accent font-bold"></i>
+                                </div>
+                                <span class="text-slate-700 font-medium">Hybrid approaches combining Operations Research with Deep Learning.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases & Animated Carousel Canvas -->
+    <section id="use-cases" class="py-24 relative z-10 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-primary font-bold tracking-wider uppercase text-sm mb-3">Live Solutions</h2>
+                <h3 class="text-4xl md:text-5xl font-display font-bold text-dark">Algorithmic Applications</h3>
+                <p class="mt-4 text-slate-600 text-lg">Watch the automated animations showcasing real-world problem-solving heuristics in action.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- 2D Canvas Container for custom animations -->
+                <div class="relative h-[450px] rounded-3xl p-2 bg-slate-50 border border-slate-200 shadow-2xl shadow-primary/5 reveal delay-100 overflow-hidden">
+                    <!-- Title Overlay -->
+                    <div class="absolute top-6 left-6 z-10">
+                        <span id="canvas-tag-1" class="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold rounded-full shadow text-primary border border-slate-100 transition-opacity duration-300">Clustering</span>
+                        <span id="canvas-tag-2" class="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold rounded-full shadow text-secondary border border-slate-100 transition-opacity duration-300 hidden">Forecasting</span>
+                        <span id="canvas-tag-3" class="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold rounded-full shadow text-emerald-600 border border-slate-100 transition-opacity duration-300 hidden">Optimization</span>
+                        <span id="canvas-tag-4" class="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold rounded-full shadow text-purple-600 border border-slate-100 transition-opacity duration-300 hidden">Agentic LLM</span>
+                    </div>
+                    
+                    <canvas id="usecase-canvas" class="rounded-2xl"></canvas>
+                    
+                    <!-- Progress Bar for Carousel -->
+                    <div class="absolute bottom-6 left-6 right-6 h-1 bg-slate-200 rounded-full overflow-hidden">
+                        <div id="canvas-progress" class="h-full bg-gradient-to-r from-primary to-secondary w-0 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Syncing Text Content Cards -->
+                <div class="space-y-4 reveal delay-200">
+                    <!-- Case 0 -->
+                    <div class="usecase-card active p-6 rounded-2xl bg-surface border border-slate-100" data-index="0">
+                        <div class="flex items-center gap-4 mb-2">
+                            <div class="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center">
+                                <i data-lucide="map-pin" class="w-5 h-5"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-dark">K-Means Geospatial Clustering</h4>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Grouping raw geospatial nodes (customers, hubs) iteratively to find optimal centroid locations for supply chain networks, reducing overall distance traveled.
+                        </p>
+                    </div>
+
+                    <!-- Case 1 -->
+                    <div class="usecase-card p-6 rounded-2xl bg-surface border border-slate-100" data-index="1">
+                        <div class="flex items-center gap-4 mb-2">
+                            <div class="w-10 h-10 rounded-lg bg-secondary text-white flex items-center justify-center">
+                                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-dark">ML Predictive Forecasting</h4>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Analyzing historical sales data trends to project future performance. Machine learning models map seasonality and trend to generate dynamic confidence intervals.
+                        </p>
+                    </div>
+
+                    <!-- Case 2 -->
+                    <div class="usecase-card p-6 rounded-2xl bg-surface border border-slate-100" data-index="2">
+                        <div class="flex items-center gap-4 mb-2">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center">
+                                <i data-lucide="route" class="w-5 h-5"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-dark">TSP Route Optimization</h4>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Solving the Traveling Salesperson Problem. The algorithm identifies and eliminates inefficient crossing routes, drastically reducing total operational costs.
+                        </p>
+                    </div>
+
+                    <!-- Case 3 -->
+                    <div class="usecase-card p-6 rounded-2xl bg-surface border border-slate-100" data-index="3">
+                        <div class="flex items-center gap-4 mb-2">
+                            <div class="w-10 h-10 rounded-lg bg-purple-600 text-white flex items-center justify-center">
+                                <i data-lucide="bot" class="w-5 h-5"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-dark">Agentic LLM Automation</h4>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Deploying autonomous language agents capable of answering customer queries in real-time, monitoring system logs, and triggering API actions seamlessly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Business Domains Section -->
+    <section id="domains" class="py-24 relative z-10 bg-surface">
+        <div class="w-[500px] h-[500px] bg-secondary/5 blob-bg bottom-0 right-0"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-primary font-bold tracking-wider uppercase text-sm mb-3">Industry Solutions</h2>
+                <h3 class="text-4xl md:text-5xl font-display font-bold text-dark">Cross-Domain Expertise</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Domain Cards -->
+                <div class="glass glass-card p-8 rounded-3xl bg-white border-slate-100 relative overflow-hidden group reveal delay-100">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 text-blue-600 relative z-10 shadow-sm border border-blue-100">
+                        <i data-lucide="line-chart" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 text-dark relative z-10">Finance</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed relative z-10">
+                        Algorithmic trading, risk assessment, fraud detection, credit scoring, and predictive forecasting.
+                    </p>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-3xl bg-white border-slate-100 relative overflow-hidden group reveal delay-200">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-pink-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center mb-6 text-pink-600 relative z-10 shadow-sm border border-pink-100">
+                        <i data-lucide="target" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 text-dark relative z-10">Marketing</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed relative z-10">
+                        Lifetime Value (LTV) modeling, hyper-personalization engines, and marketing mix optimization.
+                    </p>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-3xl bg-white border-slate-100 relative overflow-hidden group reveal delay-300">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 text-emerald-600 relative z-10 shadow-sm border border-emerald-100">
+                        <i data-lucide="truck" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 text-dark relative z-10">Logistics</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed relative z-10">
+                        Vehicle routing optimization, dynamic capacity planning, and supply chain forecasting.
+                    </p>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-3xl bg-white border-slate-100 relative overflow-hidden group reveal delay-400">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 text-purple-600 relative z-10 shadow-sm border border-purple-100">
+                        <i data-lucide="settings" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 text-dark relative z-10">Operations</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed relative z-10">
+                        Process mining, resource allocation mapping, predictive maintenance, and strategic design.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Expertise Section -->
+    <section id="expertise" class="py-24 relative z-10 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 reveal">
+                <div class="max-w-2xl">
+                    <h2 class="text-secondary font-bold tracking-wider uppercase text-sm mb-3">Technical Arsenal</h2>
+                    <h3 class="text-4xl md:text-5xl font-display font-bold text-dark">Algorithmic Capabilities</h3>
+                </div>
+                <p class="text-slate-500 max-w-md text-sm border-l-2 border-primary pl-4">Deploying the optimal mathematical or architectural framework tailored to the specific constraints of your business data.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Skill Items -->
+                <div class="glass glass-card p-8 rounded-2xl border-slate-200 reveal delay-100">
+                    <i data-lucide="cpu" class="w-10 h-10 text-primary mb-4"></i>
+                    <h4 class="text-lg font-bold mb-2 text-dark">Machine Learning</h4>
+                    <p class="text-slate-600 text-sm mb-6">Random Forests, Gradient Boosting (XGBoost/LightGBM), SVMs, clustering for predictive analytics.</p>
+                    <div class="flex gap-2">
+                        <span class="text-xs font-bold bg-primary/10 text-primary px-3 py-1 rounded-full">Python</span>
+                        <span class="text-xs font-bold bg-primary/10 text-primary px-3 py-1 rounded-full">Scikit-Learn</span>
+                    </div>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-2xl border-slate-200 reveal delay-200">
+                    <i data-lucide="network" class="w-10 h-10 text-secondary mb-4"></i>
+                    <h4 class="text-lg font-bold mb-2 text-dark">Deep Learning</h4>
+                    <p class="text-slate-600 text-sm mb-6">Neural Networks, NLP (Transformers), Computer Vision (CNNs), and Sequence Models (RNNs).</p>
+                    <div class="flex gap-2">
+                        <span class="text-xs font-bold bg-secondary/10 text-secondary px-3 py-1 rounded-full">PyTorch</span>
+                        <span class="text-xs font-bold bg-secondary/10 text-secondary px-3 py-1 rounded-full">TensorFlow</span>
+                    </div>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-2xl border-slate-200 reveal delay-300">
+                    <i data-lucide="git-commit" class="w-10 h-10 text-accent mb-4"></i>
+                    <h4 class="text-lg font-bold mb-2 text-dark">Optimization (MILP)</h4>
+                    <p class="text-slate-600 text-sm mb-6">Mixed-Integer Linear Programming and heuristics for complex resource allocation.</p>
+                    <div class="flex gap-2">
+                        <span class="text-xs font-bold bg-accent/20 text-teal-700 px-3 py-1 rounded-full">Gurobi</span>
+                        <span class="text-xs font-bold bg-accent/20 text-teal-700 px-3 py-1 rounded-full">CPLEX</span>
+                    </div>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-2xl border-slate-200 reveal delay-100">
+                    <i data-lucide="bot" class="w-10 h-10 text-blue-600 mb-4"></i>
+                    <h4 class="text-lg font-bold mb-2 text-dark">Reinforcement Learning</h4>
+                    <p class="text-slate-600 text-sm mb-6">Designing autonomous agents for dynamic decision-making environments, from robotics to automated trading.</p>
+                    <div class="flex gap-2">
+                        <span class="text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full">OpenAI Gym</span>
+                        <span class="text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full">Ray RLlib</span>
+                    </div>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-2xl border-slate-200 reveal delay-200">
+                    <i data-lucide="database" class="w-10 h-10 text-pink-600 mb-4"></i>
+                    <h4 class="text-lg font-bold mb-2 text-dark">Databases & Big Data</h4>
+                    <p class="text-slate-600 text-sm mb-6">Architecting scalable data warehouses, ETL pipelines, and working with both SQL and distributed NoSQL systems.</p>
+                    <div class="flex gap-2">
+                        <span class="text-xs font-bold bg-pink-50 text-pink-700 border border-pink-100 px-3 py-1 rounded-full">PostgreSQL</span>
+                        <span class="text-xs font-bold bg-pink-50 text-pink-700 border border-pink-100 px-3 py-1 rounded-full">Snowflake / Spark</span>
+                    </div>
+                </div>
+
+                <div class="glass glass-card p-8 rounded-2xl border-slate-200 reveal delay-300">
+                    <i data-lucide="bar-chart-2" class="w-10 h-10 text-purple-600 mb-4"></i>
+                    <h4 class="text-lg font-bold mb-2 text-dark">Econometrics & Viz</h4>
+                    <p class="text-slate-600 text-sm mb-6">Causal inference, time-series forecasting (ARIMA, Prophet), and crafting compelling interactive dashboards.</p>
+                    <div class="flex gap-2">
+                        <span class="text-xs font-bold bg-purple-50 text-purple-700 border border-purple-100 px-3 py-1 rounded-full">Tableau</span>
+                        <span class="text-xs font-bold bg-purple-50 text-purple-700 border border-purple-100 px-3 py-1 rounded-full">D3.js / Three.js</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials with Infinite Carousel -->
+    <section id="testimonials" class="py-24 relative z-10 bg-surface border-y border-slate-200 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-primary font-bold tracking-wider uppercase text-sm mb-3">Client Success</h2>
+                <h3 class="text-4xl md:text-5xl font-display font-bold text-dark">Trusted by Leaders</h3>
+            </div>
+        </div>
+
+        <!-- Infinite Carousel Container -->
+        <div class="carousel-container reveal delay-200 pb-10">
+            <div class="carousel-track">
+                <!-- Card 1 -->
+                <div class="w-[350px] md:w-[450px] flex-shrink-0 bg-white p-8 rounded-3xl shadow-md border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-2 text-slate-800 font-bold">
+                                <i data-lucide="box" class="w-6 h-6 text-primary"></i> GlobalLogistics Co.
+                            </div>
+                            <i data-lucide="quote" class="w-8 h-8 text-slate-200"></i>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-8">"The logistics optimization model completely transformed our supply chain. We were able to visualize bottlenecks and reduce our operational costs by millions annually."</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">M</div>
+                        <div>
+                            <h4 class="font-bold text-dark text-sm">Michael R.</h4>
+                            <p class="text-xs text-slate-500">VP of Operations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="w-[350px] md:w-[450px] flex-shrink-0 bg-white p-8 rounded-3xl shadow-md border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-2 text-slate-800 font-bold">
+                                <i data-lucide="activity" class="w-6 h-6 text-secondary"></i> FinTech Innovators
+                            </div>
+                            <i data-lucide="quote" class="w-8 h-8 text-slate-200"></i>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-8">"Not just a data scientist, but a strategic partner. The transition from abstract machine learning algorithms to an actual dashboard our team could use was seamless."</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">S</div>
+                        <div>
+                            <h4 class="font-bold text-dark text-sm">Sarah T.</h4>
+                            <p class="text-xs text-slate-500">Chief Marketing Officer</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="w-[350px] md:w-[450px] flex-shrink-0 bg-white p-8 rounded-3xl shadow-md border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-2 text-slate-800 font-bold">
+                                <i data-lucide="shopping-cart" class="w-6 h-6 text-emerald-500"></i> Retail Giant
+                            </div>
+                            <i data-lucide="quote" class="w-8 h-8 text-slate-200"></i>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-8">"The predictive forecasting algorithm implemented managed to reduce our inventory stockouts by 35% during peak holiday seasons. Phenomenal ROI."</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">D</div>
+                        <div>
+                            <h4 class="font-bold text-dark text-sm">David K.</h4>
+                            <p class="text-xs text-slate-500">Head of Data</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DUPLICATES FOR INFINITE SCROLL EFFECT -->
+                <div class="w-[350px] md:w-[450px] flex-shrink-0 bg-white p-8 rounded-3xl shadow-md border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-2 text-slate-800 font-bold">
+                                <i data-lucide="box" class="w-6 h-6 text-primary"></i> GlobalLogistics Co.
+                            </div>
+                            <i data-lucide="quote" class="w-8 h-8 text-slate-200"></i>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-8">"The logistics optimization model completely transformed our supply chain. We were able to visualize bottlenecks and reduce our operational costs by millions annually."</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">M</div>
+                        <div>
+                            <h4 class="font-bold text-dark text-sm">Michael R.</h4>
+                            <p class="text-xs text-slate-500">VP of Operations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-[350px] md:w-[450px] flex-shrink-0 bg-white p-8 rounded-3xl shadow-md border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-2 text-slate-800 font-bold">
+                                <i data-lucide="activity" class="w-6 h-6 text-secondary"></i> FinTech Innovators
+                            </div>
+                            <i data-lucide="quote" class="w-8 h-8 text-slate-200"></i>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-8">"Not just a data scientist, but a strategic partner. The transition from abstract machine learning algorithms to an actual dashboard our team could use was seamless."</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">S</div>
+                        <div>
+                            <h4 class="font-bold text-dark text-sm">Sarah T.</h4>
+                            <p class="text-xs text-slate-500">Chief Marketing Officer</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-[350px] md:w-[450px] flex-shrink-0 bg-white p-8 rounded-3xl shadow-md border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-2 text-slate-800 font-bold">
+                                <i data-lucide="shopping-cart" class="w-6 h-6 text-emerald-500"></i> Retail Giant
+                            </div>
+                            <i data-lucide="quote" class="w-8 h-8 text-slate-200"></i>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-8">"The predictive forecasting algorithm implemented managed to reduce our inventory stockouts by 35% during peak holiday seasons. Phenomenal ROI."</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">D</div>
+                        <div>
+                            <h4 class="font-bold text-dark text-sm">David K.</h4>
+                            <p class="text-xs text-slate-500">Head of Data</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 relative z-10 bg-alive-gradient overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 20% 50%, #ffffff 0%, transparent 50%), radial-gradient(circle at 80% 50%, #ffffff 0%, transparent 50%);"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="bg-white rounded-[2rem] overflow-hidden shadow-2xl reveal">
+                <div class="grid grid-cols-1 lg:grid-cols-2">
+                    
+                    <div class="p-12 lg:p-16 bg-surface border-r border-slate-100">
+                        <h3 class="text-4xl font-display font-bold mb-4 text-dark">Ready to build the <span class="text-primary">future?</span></h3>
+                        <p class="text-slate-600 mb-10 text-lg">Reach out to discuss your complex business challenges. I am available for high-impact consulting, contract architectures, and project-based optimization.</p>
+                        
+                        <div class="space-y-8">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-primary border border-slate-100">
+                                    <i data-lucide="mail" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Email</p>
+                                    <a href="mailto:consulting@datanova.com" class="text-xl font-bold text-dark hover:text-primary transition-colors">consulting@datanova.com</a>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-secondary border border-slate-100">
+                                    <i data-lucide="globe" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Location</p>
+                                    <p class="text-xl font-bold text-dark">Remote / Global Availability</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-12 lg:p-16 bg-white">
+                        <form onsubmit="event.preventDefault(); alert('Message feature ready to be connected to a backend.');" class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700">First Name</label>
+                                    <input type="text" class="w-full bg-surface border border-slate-200 rounded-xl px-4 py-3.5 text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium" placeholder="Jane">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700">Last Name</label>
+                                    <input type="text" class="w-full bg-surface border border-slate-200 rounded-xl px-4 py-3.5 text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium" placeholder="Doe">
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-700">Email Address</label>
+                                <input type="email" class="w-full bg-surface border border-slate-200 rounded-xl px-4 py-3.5 text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium" placeholder="jane@company.com">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-700">Project Type</label>
+                                <select class="w-full bg-surface border border-slate-200 rounded-xl px-4 py-3.5 text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none font-medium">
+                                    <option>Machine Learning Pipeline</option>
+                                    <option>Mathematical Optimization (MILP)</option>
+                                    <option>Data Strategy / Consulting</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full bg-dark text-white font-bold text-lg py-4 rounded-xl hover:bg-primary shadow-lg hover:shadow-primary/30 transition-all duration-300 transform hover:-translate-y-0.5 mt-4">
+                                Send Inquiry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark py-10 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i data-lucide="hexagon" class="text-primary w-6 h-6"></i>
+                <span class="font-display font-bold tracking-wider text-lg text-white">DATA<span class="text-primary">NOVA</span></span>
+            </div>
+            <p class="text-slate-400 text-sm font-medium">© 2024 DataNova Consulting. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        // --- 1. Global Navbar & Mobile Menu ---
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('bg-white/80', 'backdrop-blur-xl', 'shadow-sm', 'border-b', 'border-slate-200/50');
+            } else {
+                navbar.classList.remove('bg-white/80', 'backdrop-blur-xl', 'shadow-sm', 'border-b', 'border-slate-200/50');
+            }
+        });
+
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+        });
+
+        // --- 2. Scrollspy Navigation ---
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        const scrollSpyObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if(link.getAttribute('data-target') === entry.target.id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.3 });
+
+        sections.forEach(sec => scrollSpyObserver.observe(sec));
+
+
+        // --- 3. Intersection Observer Reveals & Number Counter ---
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const animateCounter = (el) => {
+            if(el.getAttribute('data-counted') === 'true') return;
+            el.setAttribute('data-counted', 'true');
+            
+            const target = +el.getAttribute('data-target');
+            const duration = 2000; // ms
+            const step = (timestamp) => {
+                if (!el.startTime) el.startTime = timestamp;
+                const progress = Math.min((timestamp - el.startTime) / duration, 1);
+                // Easing out cubic
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                el.innerText = Math.floor(easeProgress * target);
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.innerText = target;
+                }
+            };
+            requestAnimationFrame(step);
+        };
+
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Check if there are counters inside this element
+                    const counters = entry.target.querySelectorAll('.counter');
+                    counters.forEach(c => animateCounter(c));
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+
+        // --- 4. Hero Network 3D (Retained from existing code) ---
+        const initHeroNetwork = () => {
+            const container = document.getElementById('hero-canvas');
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xffffff);
+            const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.z = 300;
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+            container.appendChild(renderer.domElement);
+
+            const particleCount = 400;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const colorBlue = new THREE.Color(0x0066FF);
+            const colorPink = new THREE.Color(0xFF007F);
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 800;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 800;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 800;
+                const mixedColor = colorBlue.clone().lerp(colorPink, Math.random());
+                colors[i * 3] = mixedColor.r; colors[i * 3 + 1] = mixedColor.g; colors[i * 3 + 2] = mixedColor.b;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            const material = new THREE.PointsMaterial({ size: 4, vertexColors: true, transparent: true, opacity: 0.8 });
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            let mouseX = 0, mouseY = 0;
+            const windowHalfX = window.innerWidth / 2, windowHalfY = window.innerHeight / 2;
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - windowHalfX) * 0.2; mouseY = (event.clientY - windowHalfY) * 0.2;
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                particles.rotation.y += 0.0005; particles.rotation.x += 0.0002;
+                camera.position.x += (mouseX - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+                renderer.render(scene, camera);
+            };
+            animate();
+        };
+
+        // --- 5. Interactive 2D Canvas Use-Cases Animations ---
+        const initUseCaseAnimations = () => {
+            const canvas = document.getElementById('usecase-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h;
+            
+            const resizeCanvas = () => {
+                const parent = canvas.parentElement;
+                canvas.width = parent.clientWidth;
+                canvas.height = parent.clientHeight;
+                w = canvas.width;
+                h = canvas.height;
+            };
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // Carousel State
+            const SCENE_DURATION = 8000; // ms
+            let currentSceneIndex = 0;
+            let sceneStartTime = performance.now();
+            
+            const usecaseCards = document.querySelectorAll('.usecase-card');
+            const progressIndicator = document.getElementById('canvas-progress');
+            const tags = [
+                document.getElementById('canvas-tag-1'),
+                document.getElementById('canvas-tag-2'),
+                document.getElementById('canvas-tag-3'),
+                document.getElementById('canvas-tag-4')
+            ];
+
+            // Scene 0: Clustering Data
+            const clusterPoints = Array.from({length: 120}, () => ({
+                x: Math.random(), y: Math.random(),
+                cluster: -1
+            }));
+            const finalCentroids = [
+                {x: 0.25, y: 0.25, color: '#0066FF'},
+                {x: 0.75, y: 0.35, color: '#FF007F'},
+                {x: 0.50, y: 0.75, color: '#00E5FF'}
+            ];
+
+            // Scene 1: Forecasting Data
+            const forecastData = [];
+            for(let i=0; i<100; i++) forecastData.push(Math.sin(i*0.1)*0.3 + 0.5 + (Math.random()*0.1));
+
+            // Scene 2: Route TSP Data (Pre-calculate optimization steps via 2-opt heuristic)
+            const tspNodes = Array.from({length: 14}, () => ({
+                x: 0.15 + Math.random()*0.7, y: 0.15 + Math.random()*0.7
+            }));
+            const center = tspNodes.reduce((acc, val) => ({x: acc.x+val.x, y: acc.y+val.y}), {x:0,y:0});
+            center.x /= tspNodes.length; center.y /= tspNodes.length;
+            const perfectOrder = [...tspNodes].sort((a,b) => Math.atan2(a.y-center.y, a.x-center.x) - Math.atan2(b.y-center.y, b.x-center.x));
+            
+            let tspStages = [];
+            let currentOrder = [...perfectOrder];
+            tspStages.push([...currentOrder]); // best
+            for(let i=0; i<15; i++) {
+                 // Scramble backwards
+                 let i1 = Math.floor(Math.random()*currentOrder.length);
+                 let i2 = Math.floor(Math.random()*currentOrder.length);
+                 if(i1 > i2) { let t = i1; i1=i2; i2=t; }
+                 let sub = currentOrder.slice(i1, i2).reverse();
+                 currentOrder.splice(i1, i2-i1, ...sub);
+                 tspStages.push([...currentOrder]);
+            }
+            tspStages.reverse(); // worst to best
+
+            const calculateCost = (route) => {
+                let cost = 0;
+                for(let i=0; i<route.length; i++){
+                    let a = route[i], b = route[(i+1)%route.length];
+                    cost += Math.hypot(a.x-b.x, a.y-b.y);
+                }
+                return cost;
+            };
+
+            // Common draw grid
+            const drawGrid = () => {
+                ctx.strokeStyle = '#f1f5f9'; // slate-100
+                ctx.lineWidth = 1;
+                for(let x=0; x<w; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+                for(let y=0; y<h; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+            };
+
+            const animateLoop = (timestamp) => {
+                requestAnimationFrame(animateLoop);
+                
+                ctx.clearRect(0, 0, w, h);
+                drawGrid();
+
+                let elapsed = timestamp - sceneStartTime;
+                if (elapsed > SCENE_DURATION) {
+                    currentSceneIndex = (currentSceneIndex + 1) % 4; // Updated to 4 scenes
+                    sceneStartTime = timestamp;
+                    elapsed = 0;
+                    
+                    usecaseCards.forEach((c, i) => c.classList.toggle('active', i === currentSceneIndex));
+                    tags.forEach((t, i) => {
+                        if(t) {
+                            t.classList.toggle('hidden', i !== currentSceneIndex);
+                            t.style.opacity = i === currentSceneIndex ? '1' : '0';
+                        }
+                    });
+                }
+
+                progressIndicator.style.width = `${(elapsed / SCENE_DURATION) * 100}%`;
+                const progress = elapsed / SCENE_DURATION;
+
+                ctx.save();
+                
+                // --- SCENE 0: CLUSTERING ---
+                if (currentSceneIndex === 0) {
+                    // Centroids drift outwards
+                    const curCentroids = finalCentroids.map(fc => ({
+                        x: 0.5 + (fc.x - 0.5) * Math.min(1, progress * 2),
+                        y: 0.5 + (fc.y - 0.5) * Math.min(1, progress * 2),
+                        color: fc.color
+                    }));
+
+                    clusterPoints.forEach(p => {
+                        // Assign closest centroid
+                        let minD = Infinity; let bestC = -1;
+                        curCentroids.forEach((c, i) => {
+                            let d = Math.hypot(p.x - c.x, p.y - c.y);
+                            if(d < minD) { minD = d; bestC = i; }
+                        });
+                        p.color = curCentroids[bestC].color;
+
+                        // Draw static node
+                        ctx.beginPath();
+                        ctx.arc(p.x * w, p.y * h, 4, 0, Math.PI*2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+                    });
+
+                    // Draw moving centroids
+                    if (progress > 0.1) {
+                        curCentroids.forEach(c => {
+                            ctx.beginPath();
+                            ctx.arc(c.x * w, c.y * h, 12, 0, Math.PI*2);
+                            ctx.fillStyle = c.color; ctx.fill();
+                            ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+                        });
+                    }
+                }
+
+                // --- SCENE 1: FORECASTING ---
+                else if (currentSceneIndex === 1) {
+                    const drawnPoints = Math.floor(progress * 100); 
+
+                    ctx.lineWidth = 3;
+                    ctx.lineJoin = 'round';
+                    
+                    // Historical Line (Blue)
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#0066FF';
+                    for(let i=0; i<Math.min(50, drawnPoints); i++) {
+                        const x = (i/100) * w;
+                        const y = h - (forecastData[i] * h);
+                        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                    }
+                    ctx.stroke();
+
+                    // Forecast Line (Pink) & Confidence Interval
+                    if(drawnPoints > 50) {
+                        const startForecastX = (50/100) * w;
+                        
+                        // Confidence area
+                        ctx.beginPath();
+                        ctx.fillStyle = 'rgba(255, 0, 127, 0.1)';
+                        ctx.moveTo(startForecastX, h - (forecastData[50] * h));
+                        for(let i=50; i<drawnPoints; i++) {
+                            const x = (i/100) * w;
+                            const y = h - (forecastData[i] * h);
+                            const spread = (i-50) * 1.5; 
+                            ctx.lineTo(x, y - spread);
+                        }
+                        for(let i=drawnPoints-1; i>=50; i--) {
+                            const x = (i/100) * w;
+                            const y = h - (forecastData[i] * h);
+                            const spread = (i-50) * 1.5;
+                            ctx.lineTo(x, y + spread);
+                        }
+                        ctx.fill();
+
+                        // Forecast Line
+                        ctx.beginPath();
+                        ctx.strokeStyle = '#FF007F';
+                        for(let i=50; i<drawnPoints; i++) {
+                            const x = (i/100) * w;
+                            const y = h - (forecastData[i] * h);
+                            if(i===50) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                        }
+                        ctx.stroke();
+
+                        // Current Point Marker
+                        if(drawnPoints < 100) {
+                            ctx.beginPath();
+                            ctx.arc(((drawnPoints-1)/100)*w, h - (forecastData[drawnPoints-1]*h), 6, 0, Math.PI*2);
+                            ctx.fillStyle = '#FF007F'; ctx.fill();
+                            ctx.strokeStyle = '#fff'; ctx.lineWidth=2; ctx.stroke();
+                        }
+                    }
+                }
+
+                // --- SCENE 2: ROUTE OPTIMIZATION ---
+                else if (currentSceneIndex === 2) {
+                    // Map progress to stages
+                    let stageIdx = Math.floor(progress * tspStages.length);
+                    if(stageIdx >= tspStages.length) stageIdx = tspStages.length - 1;
+                    let route = tspStages[stageIdx];
+                    let currentCost = calculateCost(route);
+
+                    // Draw Edges
+                    ctx.beginPath();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = stageIdx === tspStages.length - 1 ? '#10b981' : '#64748b'; 
+                    
+                    route.forEach((n, i) => {
+                        if(i===0) ctx.moveTo(n.x*w, n.y*h); else ctx.lineTo(n.x*w, n.y*h);
+                    });
+                    ctx.lineTo(route[0].x*w, route[0].y*h); // close loop
+                    ctx.stroke();
+
+                    // Draw Nodes
+                    route.forEach(n => {
+                        ctx.beginPath();
+                        ctx.arc(n.x*w, n.y*h, 6, 0, Math.PI*2);
+                        ctx.fillStyle = '#0f172a'; ctx.fill();
+                        ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+                    });
+
+                    // Objective Function Label
+                    ctx.fillStyle = stageIdx === tspStages.length - 1 ? '#10b981' : '#ef4444'; 
+                    ctx.font = "bold 24px 'Space Grotesk', sans-serif";
+                    ctx.textAlign = "center";
+                    
+                    // Map arbitrary cost value to dollar amount for realism
+                    const mappedCost = Math.floor(currentCost * 3000);
+                    ctx.fillText(`Obj Cost: $${mappedCost.toLocaleString()}`, w/2, h/2);
+                }
+
+                // --- SCENE 3: AGENTIC LLM ---
+                else if (currentSceneIndex === 3) {
+                    // Central Agent
+                    ctx.beginPath();
+                    ctx.arc(w/2, h/2, 30, 0, Math.PI*2);
+                    ctx.fillStyle = '#8b5cf6'; // purple-500
+                    ctx.fill();
+
+                    // Pulse effect
+                    ctx.beginPath();
+                    let pRadius = 30 + (progress*100)%50;
+                    ctx.arc(w/2, h/2, pRadius, 0, Math.PI*2);
+                    ctx.strokeStyle = `rgba(139, 92, 246, ${1 - ((progress*100)%50)/50})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Surrounding nodes
+                    const agentNodes = [
+                        {x: 0.2, y: 0.2, label: 'Customer', color: '#FF007F'},
+                        {x: 0.8, y: 0.2, label: 'Analytics', color: '#00E5FF'},
+                        {x: 0.2, y: 0.8, label: 'Database', color: '#10b981'},
+                        {x: 0.8, y: 0.8, label: 'API Gateway', color: '#f59e0b'}
+                    ];
+
+                    agentNodes.forEach((node, i) => {
+                        // Connection line
+                        ctx.beginPath();
+                        ctx.moveTo(w/2, h/2);
+                        ctx.lineTo(node.x*w, node.y*h);
+                        ctx.strokeStyle = '#e2e8f0'; 
+                        ctx.stroke();
+
+                        // Node
+                        ctx.beginPath();
+                        ctx.arc(node.x*w, node.y*h, 15, 0, Math.PI*2);
+                        ctx.fillStyle = node.color;
+                        ctx.fill();
+                        
+                        ctx.fillStyle = '#334155';
+                        ctx.font = 'bold 12px Inter';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(node.label, node.x*w, node.y*h - 25);
+
+                        // Moving Data Packets
+                        let t = (progress * (4 + i)) % 1; // Different speeds
+                        let dir = (progress * (3+i)) % 2 > 1; // ping pong
+                        if(dir) t = 1 - t;
+                        let px = (w/2) + (node.x*w - w/2)*t;
+                        let py = (h/2) + (node.y*h - h/2)*t;
+                        
+                        ctx.beginPath();
+                        ctx.arc(px, py, 6, 0, Math.PI*2);
+                        ctx.fillStyle = '#0f172a';
+                        ctx.fill();
+                    });
+
+                    // Chat/Log UI Mockup Box
+                    const boxW = 220; const boxH = 90;
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.fillRect(w/2 - boxW/2, h/2 + 50, boxW, boxH);
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.strokeRect(w/2 - boxW/2, h/2 + 50, boxW, boxH);
+                    
+                    ctx.fillStyle = '#334155';
+                    ctx.font = '11px Inter';
+                    ctx.textAlign = 'left';
+                    
+                    let msgs = [
+                         "Customer: System is slow...",
+                         "Agent: Parsing intent...",
+                         "Agent: Querying Database loads.",
+                         "Agent: Triggering auto-scale API."
+                    ];
+                    let visibleMsgs = Math.floor(progress * 5); // reveals sequentially
+                    for(let i=0; i<Math.min(msgs.length, visibleMsgs); i++) {
+                         ctx.fillText(msgs[i], w/2 - boxW/2 + 10, h/2 + 65 + (i*20));
+                    }
+                }
+                
+                ctx.restore();
+            };
+            requestAnimationFrame(animateLoop);
+            
+            // Allow manual clicking to switch scenes
+            usecaseCards.forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    currentSceneIndex = index;
+                    sceneStartTime = performance.now();
+                });
+                card.classList.add('cursor-pointer');
+            });
+        };
+
+        window.onload = () => {
+            initHeroNetwork();
+            initUseCaseAnimations();
+        };
+
+    </script>
+</body>
+</html>
